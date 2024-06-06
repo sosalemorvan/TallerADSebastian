@@ -1,4 +1,4 @@
-name: imprimir datos y filtrar
+name: filtro por paises
 
 on:
   schedule:
@@ -20,8 +20,20 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: crear tabla de resultados
+      - name: crear tablas por pais
         run: |
-         echo 'Estoy en la carpeta de actions'
-         cat salida.txt
-            
+         grep Germany -i companies-all.csv  > companies-germany.csv
+         grep kingdom -i companies-all.csv  > companies-kingdom.csv
+         grep france -i companies-all.csv  > companies-france.csv
+
+      - name: Commit Results
+        if: always()
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git diff --quiet || git stash
+          git pull --rebase origin main
+          git stash list | grep "stash@{0}" && git stash apply
+          git add .
+          git diff --cached --exit-code || git commit -m "tabla actualizada" --allow-empty
+          git push --force-with-lease origin HEAD:main
